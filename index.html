@@ -1,0 +1,274 @@
+﻿
+
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>雷霆豆豆</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            #myCanvas{
+                background-color: black;
+            }
+        </style>
+        <script>
+
+
+            var dy = 1;
+            var screenball = [];
+            var screenFeatureBall = null;
+            var playerBall = null;
+            var playerX = null;
+            var playerY = null;
+            var time;
+            var timeout;
+            var score = 0;
+            var scorenum = 0;
+            var difficult = 500;
+            var level = 1;
+            var countBullet = null;
+            var bulletBall = null;
+            var power = 0;
+            var protectArc = null;
+            var featureTime = 0;
+            function ball(x, y, r, c, dy) {
+                this.x = x;
+                this.y = y;
+                this.dy = dy;
+                this.radius = r;
+                this.color = c;
+            }
+            function doKeyDown(e) {
+            if(power>=20){
+                if (e.keyCode == 65) {
+                    creatProtect();
+                    power=0;
+                }
+            }
+            }
+            function doMouseMove(e) {
+                if (e.clientX > 400) {
+                    playerX = 400;
+                } else {
+                    playerX = e.clientX;
+                }
+
+                if (e.clientY > 490) {
+                    playerY = 400;
+                } else {
+                    playerY = e.clientY - 90;
+                }
+            }
+            function doMouseClick(e) {
+                if (countBullet > 0 && bulletBall == null) {
+
+                    creatBulletBall();
+                    countBullet--;
+                    document.getElementById('countBullet').innerHTML = countBullet;
+                }
+
+            }
+
+            function creatProtect() {
+                var c = document.getElementById("myCanvas");
+                protectArc = new ball(playerX, playerY, 15, "red");
+            }
+
+            function creatPlayerBall() {
+                var c = document.getElementById("myCanvas");
+                playerBall = new ball(c.width / 2, c.height / 2, 5, "red");
+            }
+
+            function creatBulletBall() {
+                bulletBall = new ball(playerX, playerY, 3, "yellow");
+
+            }
+
+            function creatFeatureBall() {
+                if (screenFeatureBall != null) {
+                    return;
+                } else {
+                    x = Math.floor(Math.random() * 400 + 1);
+                    screenFeatureBall = new ball(x, 0, 6, "green");
+                }
+            }
+
+            function creatBall() {
+                var total = screenball.length;
+                var quantity = Math.floor(Math.random() * 3 + level);
+                for (var i = total; i < total + quantity; i++) {
+                    x = Math.floor(Math.random() * 400 + 1);
+                    dy = Math.random() * 2 + 0.5;
+                    r = Math.random() * 3 + 3;
+                    screenball[i] = new ball(x, 0, r, "white", dy);
+                }
+                var prize = Math.floor(Math.random() * 20 + 1);
+                timeout = setTimeout(function () {
+                    if (prize == 5) {
+                        creatFeatureBall();
+                    }
+                    creatBall();
+                }, 1000 / 4);
+            }
+
+            function drawBall(x, y, radius, color) {
+                var c = document.getElementById("myCanvas");
+                var ctx = c.getContext("2d");
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2, false);
+                ctx.fillStyle = color;
+                ctx.fill();
+                ctx.closePath();
+            }
+
+            function drawArc(x, y, radius, color) {
+                var c = document.getElementById("myCanvas");
+                var ctx = c.getContext("2d");
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2, false);
+                ctx.strokeStyle = color;
+                ctx.stroke();
+                ctx.closePath();
+            }
+
+
+            function drawRect(color, x1, y1, x2, y2) {
+                var c = document.getElementById("myCanvas");
+                var ctx = c.getContext("2d");
+                ctx.fillStyle = color;
+                ctx.fillRect(x1, y1, x2, y2);
+            }
+
+            function play() {
+                document.getElementById('start').disabled = true;
+                var c = document.getElementById("myCanvas");
+                bulletBall = null;
+                level = 1;
+                screenball = [];
+                playerBall = null;
+                screenFeatureBall = null;
+                score = 0;
+                countBullet = 0;
+                power = 0;
+
+                document.getElementById('countBullet').innerHTML = 0;
+                c.addEventListener('mousemove', doMouseMove, false);
+                c.addEventListener('click', doMouseClick, false);
+                window.addEventListener('keydown', doKeyDown, false);
+                creatBall();
+                creatPlayerBall();
+                moveBall();
+            }
+
+
+            function moveBall() {
+
+                var c = document.getElementById("myCanvas");
+                var ctx = c.getContext("2d");
+
+
+                time = setInterval(function () {
+                    ctx.clearRect(0, 0, 420, 400);
+                    if (protectArc != null) {
+                        drawArc(protectArc.x = playerX, protectArc.y = playerY, protectArc.radius -= (protectArc.radius - playerBall.radius)/300 , protectArc.color);
+                        featureTime++;
+                        if (featureTime == 500) {
+                            featureTime = 0;
+                            protectArc = null;
+                        }
+                    }
+                    drawBall(playerBall.x = playerX, playerBall.y = playerY, playerBall.radius, playerBall.color);
+                    if (bulletBall != null) {
+                        drawArc(bulletBall.x, bulletBall.y -= 2, bulletBall.radius, bulletBall.color);
+                    }
+                    if (screenFeatureBall != null) {
+                        drawBall(screenFeatureBall.x, screenFeatureBall.y += 2, screenFeatureBall.radius, screenFeatureBall.color);
+                        if (screenFeatureBall.y > 400) {
+                            screenFeatureBall = null;
+                        }
+                        if (screenFeatureBall != null && Math.sqrt(Math.pow(playerBall.x - screenFeatureBall.x, 2) + Math.pow(playerBall.y - screenFeatureBall.y, 2)) < 11) {
+
+                            screenFeatureBall = null;
+                            countBullet = 10;
+                            document.getElementById('countBullet').innerHTML = countBullet;
+                        }
+                    }
+                    //怒氣值
+
+
+                    Object.keys(screenball).forEach(function (key) {
+
+                        drawArc(screenball[key].x, screenball[key].y += screenball[key].dy, screenball[key].radius, screenball[key].color);
+                        if (bulletBall != null) {
+                            if (Math.sqrt(Math.pow((screenball[key].x - bulletBall.x), 2) + Math.pow((screenball[key].y - bulletBall.y), 2)) < screenball[key].radius + bulletBall.radius) {
+                                delete screenball[key];
+                                if (power >= 20) {
+                                    power = 20;
+                                } else {
+                                    power++;
+                                }
+                                return;
+                            }
+                            if (bulletBall.y < 0) {
+                                bulletBall = null;
+                            }
+                        }
+                        if (protectArc != null) {
+                            if (Math.sqrt(Math.pow((screenball[key].x - protectArc.x), 2) + Math.pow((screenball[key].y - protectArc.y), 2)) < screenball[key].radius + protectArc.radius) {
+                                delete screenball[key];
+                                return;
+                            }
+                        }
+                        if (screenball[key].y > 400) {
+                            delete screenball[key];
+                            return;
+                        }
+
+                        if (Math.sqrt(Math.pow((screenball[key].x - playerBall.x), 2) + Math.pow((screenball[key].y - playerBall.y), 2)) < 9)
+                        {
+                            gameover();
+                        }
+
+                    });
+                    drawRect("red", 410, 400 - power * 20, 420, 400);
+                }, 1000 / 100);
+
+                scorenum = setInterval(function () {
+                    score = score + 1;
+                    if (score % 1000 == 0) {
+                        level++;
+                    }
+                    document.getElementById('score').innerHTML = score;
+
+                }, 1000 / 50);
+            }
+
+            function gameover() {
+                clearInterval(time);
+                clearTimeout(timeout);
+                clearInterval(scorenum);
+                document.getElementById('start').disabled = false;
+            }
+
+        </script>
+    </head>
+    <body>
+        <div ><h1>雷霆豆豆</h1></div>
+        <canvas id="myCanvas" height="400" width="420" style="border:1px solid #000000; cursor: pointer;" ></canvas>
+        <button id="start" onclick="play();">Start</button>
+        <div >現在共有<span id="countBullet" >0</span>顆子彈</div>
+        <div>現在分數：</div><div id="score"></div>
+        <div>1102137211 趙冠逸</div>
+        <div>1102137212 蔡易志</div>
+        <div><h2>遊戲規則</h2></div>
+        <div>碰到紅球 = 死亡</div>
+        <div>碰到綠球 = 擁有10顆子彈(最多10顆)</div>
+        <div>子彈一次只能射一顆、不可連射</div>
+		<div>a鍵可開啟防護罩</div>
+    </body>
+</html>
